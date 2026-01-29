@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="ROGO-icon.png">
+    <title>เกมส์ลูกบิท - Smooth Pong Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url('photo.jpg') center/cover no-repeat fixed;
+            background-color: #1a0033;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            color: white;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 212, 255, 0.5);
+            font-size: 2.5em;
+            letter-spacing: 2px;
+            animation: glowPulse 2s ease-in-out infinite;
+            font-weight: 700;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 212, 255, 0.5);
+            }
+            50% {
+                text-shadow: 0 0 30px rgba(0, 255, 136, 1), 0 0 60px rgba(0, 212, 255, 0.8);
+            }
+        }
+
+        canvas {
+            background: linear-gradient(90deg, 
+                rgba(0, 40, 80, 0.95) 0%, 
+                rgba(0, 40, 80, 0.95) 50%, 
+                rgba(20, 30, 50, 0.95) 50%, 
+                rgba(20, 30, 50, 0.95) 100%);
+            border: 3px solid #00d4ff;
+            border-radius: 15px;
+            box-shadow: 
+                inset 0 0 30px rgba(0, 212, 255, 0.4),
+                0 0 30px rgba(0, 212, 255, 0.6),
+                0 0 60px rgba(0, 212, 255, 0.3);
+            display: block;
+            margin: 0 auto;
+            transition: box-shadow 0.3s ease;
+        }
+
+        canvas:hover {
+            box-shadow: 
+                inset 0 0 40px rgba(0, 212, 255, 0.5),
+                0 0 40px rgba(0, 212, 255, 0.8),
+                0 0 80px rgba(0, 212, 255, 0.5);
+        }
+
+        .info {
+            color: #00ffff;
+            margin-top: 20px;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            color: #00d4ff;
+            margin-top: 20px;
+            font-size: 14px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        #controlInfo {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        #controlInfo p {
+            margin: 8px 0;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+        }
+
+        #backButton button {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #backButton button:hover {
+            box-shadow: 0 8px 35px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        #menuScreen {
+            position: fixed;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            animation: slideIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50%) translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+
+        .menu-box {
+            background: rgba(26, 26, 46, 0.98);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 80px rgba(0, 212, 255, 0.3), inset 0 0 30px rgba(0, 255, 136, 0.05);
+            pointer-events: auto;
+            z-index: 101;
+            transition: all 0.3s ease;
+        }
+
+        .menu-box:hover {
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.8), 0 0 100px rgba(0, 212, 255, 0.4), inset 0 0 40px rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+        }
+
+        .menu-box h2 {
+            color: #00ff88;
+            margin-bottom: 25px;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 1);
+            font-size: 1.8em;
+            letter-spacing: 1px;
+            animation: menuGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes menuGlow {
+            0%, 100% {
+                text-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+            }
+            50% {
+                text-shadow: 0 0 25px rgba(0, 255, 136, 1), 0 0 40px rgba(0, 212, 255, 0.6);
+            }
+        }
+
+        .btn-mode {
+            width: 100%;
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 16px;
+            border: 2px solid;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-mode::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .btn-mode:hover::before {
+            left: 100%;
+        }
+
+        .btn-mode:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-mode:active {
+            transform: translateY(-2px) scale(0.98);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #btnAI {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: black;
+            border-color: #00ff88;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #btnAI:hover {
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 1), 0 0 20px rgba(0, 255, 136, 0.6);
+            border-color: #00ffff;
+        }
+
+        #btn2Player {
+            background: linear-gradient(135deg, #ff006e, #ff3385);
+            color: white;
+            border-color: #ff006e;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #btn2Player:hover {
+            box-shadow: 0 8px 30px rgba(255, 0, 110, 1), 0 0 20px rgba(255, 105, 180, 0.6);
+            border-color: #ff0099;
+        }
+
+        .difficulty-buttons {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .difficulty-buttons.show {
+            display: block;
+        }
+
+        .btn-diff {
+            width: 48%;
+            padding: 12px;
+            margin: 8px 1%;
+            font-size: 14px;
+            border: 2px solid;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-diff:hover {
+            transform: scale(1.08) translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        #btnEasy {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: black;
+            border-color: #00ff88;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #btnEasy:hover {
+            box-shadow: 0 6px 25px rgba(0, 255, 136, 0.9), 0 0 15px rgba(0, 255, 136, 0.6);
+            border-color: #00ffaa;
+        }
+
+        #btnHard {
+            background: linear-gradient(135deg, #ff3385, #ff006e);
+            color: white;
+            border-color: #ff006e;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        #btnHard:hover {
+            box-shadow: 0 6px 25px rgba(255, 0, 110, 0.9), 0 0 15px rgba(255, 51, 133, 0.6);
+            border-color: #ff0099;
+        }
+
+        #countdownDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 140px;
+            font-weight: 900;
+            color: #00ff88;
+            text-shadow: 0 0 40px rgba(0, 255, 136, 1), 0 0 80px rgba(0, 212, 255, 0.7), 0 0 120px rgba(0, 255, 136, 0.4);
+            z-index: 201;
+            display: none;
+            animation: countdownPulse 0.6s ease-out;
+            letter-spacing: 10px;
+        }
+
+        /* Dark overlay shown during countdown/rally */
+        #countdownOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            display: none;
+            transition: opacity 0.25s ease;
+        }
+
+        @keyframes countdownPulse {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.3) rotate(-20deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5) rotate(10deg);
+            }
+        }
+
+        @keyframes scorePop {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.3);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        #liveScore {
+            background: linear-gradient(135deg, rgba(0, 30, 60, 0.95), rgba(0, 20, 50, 0.98));
+            padding: 16px 32px;
+            border-radius: 12px;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.8), 0 0 60px rgba(0, 212, 255, 0.4), inset 0 0 20px rgba(0, 255, 136, 0.1);
+            font-size: 20px;
+            letter-spacing: 2px;
+            color: #00ffff;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }

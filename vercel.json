@@ -1,0 +1,6 @@
+{
+  "routes": [
+    { "src": "/$", "dest": "/pong_game.html" },
+    { "src": "^/pong_game.html$", "dest": "/pong_game.html" }
+  ]
+}
